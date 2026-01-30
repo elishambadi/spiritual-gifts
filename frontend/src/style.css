@@ -46,6 +46,33 @@ header p {
   opacity: 0.9;
 }
 
+header .header-nav {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 main {
   max-width: 1200px;
   margin: 0 auto;
@@ -396,6 +423,17 @@ input[type="email"]:focus {
 @media (max-width: 768px) {
   header h1 {
     font-size: 1.8rem;
+  }
+
+  header .header-nav {
+    gap: 1rem;
+    flex-direction: column;
+    margin-top: 1rem;
+  }
+
+  .nav-link {
+    padding: 0.6rem 1rem;
+    text-align: center;
   }
 
   main {
