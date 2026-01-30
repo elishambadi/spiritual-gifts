@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
     container_name: spiritual-gifts-backend
     ports:
-      - "8000:8000"
+      - "8024:8000"
     volumes:
       - ./backend:/app
     environment:
@@ -44,7 +44,7 @@ services:
     networks:
       - spiritual-gifts-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+      test: ["CMD", "curl", "-f", "http://localhost:8024/api/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -62,7 +62,7 @@ services:
     networks:
       - spiritual-gifts-network
     environment:
-      - VITE_API_URL=http://localhost:8000
+      - VITE_API_URL=http://localhost:8024
 
 volumes:
   postgres-data:
