@@ -31,7 +31,7 @@ services:
       - ./backend:/app
     environment:
       - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,spiritualgifts.elimbadi.com
       - DJANGO_SETTINGS_MODULE=spiritual_gifts.settings
       - DB_NAME=spiritual_gifts_survey
       - DB_USER=postgres
@@ -44,11 +44,11 @@ services:
     networks:
       - spiritual-gifts-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8024/api/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+        test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+        start_period: 40s
 
   frontend:
     build:
@@ -62,7 +62,7 @@ services:
     networks:
       - spiritual-gifts-network
     environment:
-      - VITE_API_URL=http://localhost:8024
+      - VITE_API_URL=
 
 volumes:
   postgres-data:
