@@ -12,7 +12,7 @@ class Command(BaseCommand):
         self.stdout.write('Populating spiritual gifts and questions from questions.md...')
         
         # Find questions.md in the project root (one level up from backend/)
-        base_dir = settings.BASE_DIR.parent  # This gets us to the project root
+        base_dir = settings.BASE_DIR  # This gets us to the project root
         questions_file = os.path.join(base_dir, 'questions.md')
         
         if not os.path.exists(questions_file):
