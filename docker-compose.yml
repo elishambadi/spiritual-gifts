@@ -31,7 +31,7 @@ services:
       - ./backend:/app
     environment:
       - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,spiritualgifts.elimbadi.com
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend,spiritualgifts.parklandssda.org
       - DJANGO_SETTINGS_MODULE=spiritual_gifts.settings
       - DB_NAME=spiritual_gifts_survey
       - DB_USER=postgres
