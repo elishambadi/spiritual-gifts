@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: spiritual-gifts-db
+    environment:
+      - POSTGRES_DB=spiritual_gifts_survey
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - spiritual-gifts-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: spiritual-gifts-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - DJANGO_SETTINGS_MODULE=spiritual_gifts.settings
+      - DB_NAME=spiritual_gifts_survey
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - spiritual-gifts-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: spiritual-gifts-frontend
+    ports:
+      - "8025:80"
+    depends_on:
+      - backend
+    networks:
+      - spiritual-gifts-network
+    environment:
+      - VITE_API_URL=http://localhost:8000
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  spiritual-gifts-network:
+    driver: bridge
