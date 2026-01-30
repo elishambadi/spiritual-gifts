@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'https://spiritualgifts.elimbadi.com/api'
+const API_BASE_URL = 'https://spiritualgifts.parklandssda.org/api'
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
