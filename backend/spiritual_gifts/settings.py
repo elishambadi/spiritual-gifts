@@ -118,9 +118,16 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:8080",
     "http://localhost",
     "http://localhost:80",
+    "https://spiritualgifts.parklandssda.org",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Allow all in development
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "https://spiritualgifts.parklandssda.org",
+]
 
 # REST Framework settings
 REST_FRAMEWORK = {
