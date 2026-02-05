@@ -11,7 +11,7 @@
     <div v-else>
       <!-- Hero Image -->
       <div class="hero-image">
-        <img src="https://example.com/spiritual-gifts-hero.jpg" alt="Spiritual Gifts" />
+        <img src="/hero.jpg" alt="Spiritual Gifts" />
       </div>
 
       <!-- Intro Section -->
@@ -20,7 +20,8 @@
         <p style="margin-top: 1rem; color: var(--text-secondary); line-height: 1.8;">
           Spiritual gifts are special abilities given by the Holy Spirit to believers for the purpose of building up the body of Christ. 
           These gifts enable us to serve God and others effectively. Discover the various spiritual gifts mentioned in Scripture 
-          and find where you might best contribute to God's kingdom work.
+          and find where you might best contribute to God's kingdom work. <br>
+            You can take the spiritual gifts survey <a href="/survey" style="color: var(--secondary-color); font-weight: 600; text-decoration: underline;">here</a>.
         </p>
       </div>
 
@@ -32,7 +33,7 @@
           class="gift-card"
         >
           <div class="gift-icon">
-            <img :src="gift.icon_url || 'https://example.com/gift-icon.jpg'" :alt="gift.name" />
+            <img :src="giftDetails[gift.name].image_url" :alt="gift.name" />
           </div>
           <h3 class="gift-title">{{ gift.name }}</h3>
           <p class="gift-description">{{ gift.description }}</p>
@@ -89,82 +90,98 @@ export default {
       'Leadership': {
         examples: 'Moses, Nehemiah, Paul, Ellen G. White',
         ministries: 'Church leadership, department heads, ministry coordinators, board members, Pathfinder directors',
-        verse: 'Romans 12:8 - If it is to lead, do it diligently'
+        verse: 'Romans 12:8 - If it is to lead, do it diligently',
+        image_url: '/moses-leadership.png'
       },
       'Administration': {
         examples: 'Joseph, Daniel, Jethro (advisor to Moses)',
         ministries: 'Church treasurer, secretary, event planning, facility management, database management',
-        verse: '1 Corinthians 12:28 - God has placed in the church...those with gifts of administration'
+        verse: '1 Corinthians 12:28 - God has placed in the church...those with gifts of administration',
+        image_url: '/joseph-admin.jpg'
       },
       'Teaching': {
         examples: 'Ezra, Jesus Christ, Apollos, Timothy',
         ministries: 'Sabbath School teaching, Bible studies, children\'s ministries, seminary instruction, health education',
-        verse: 'Ephesians 4:11 - And he gave...the teachers'
+        verse: 'Ephesians 4:11 - And he gave...the teachers',
+        image_url: '/ezra-teaching.jpg'
       },
       'Knowledge': {
         examples: 'Solomon, Daniel, Luke the physician',
         ministries: 'Research, curriculum development, library services, health education, seminary teaching',
-        verse: '1 Corinthians 12:8 - To one there is given through the Spirit a message of knowledge'
+        verse: '1 Corinthians 12:8 - To one there is given through the Spirit a message of knowledge',
+        image_url: '/solomon-knowledge.jpg'
       },
       'Wisdom': {
         examples: 'Solomon, Joseph, Stephen, James',
         ministries: 'Counseling, conflict resolution, elder board, advisory roles, mentoring',
-        verse: '1 Corinthians 12:8 - To one there is given...a message of wisdom'
+        verse: '1 Corinthians 12:8 - To one there is given...a message of wisdom',
+        image_url: '/solomon-knowledge.jpg'
       },
       'Prophecy': {
         examples: 'Elijah, John the Baptist, Ellen G. White, the apostles',
         ministries: 'Preaching, revival speaking, writing, prophetic ministry, Biblical interpretation',
-        verse: 'Romans 12:6 - If your gift is prophesying, then prophesy in accordance with your faith'
+        verse: 'Romans 12:6 - If your gift is prophesying, then prophesy in accordance with your faith',
+        image_url: '/elijah-prophecy.webp'
       },
       'Discernment': {
         examples: 'Daniel, Peter, John',
         ministries: 'Church board, theological review, counseling, security ministry, doctrinal committees',
-        verse: '1 Corinthians 12:10 - To another distinguishing between spirits'
+        verse: '1 Corinthians 12:10 - To another distinguishing between spirits',
+        image_url: '/daniel-discernment.webp'
       },
       'Exhortation': {
         examples: 'Barnabas, Paul, Silas',
         ministries: 'Small group leadership, visitation ministry, encouragement cards, prayer ministry, recovery groups',
-        verse: 'Romans 12:8 - If it is to encourage, then give encouragement'
+        verse: 'Romans 12:8 - If it is to encourage, then give encouragement',
+        image_url: '/barnabas-exhortation.jpg'
       },
       'Shepherding': {
         examples: 'David, Jesus the Good Shepherd, Peter',
         ministries: 'Pastoral care, small group facilitation, mentoring, youth ministry, elder responsibilities',
-        verse: 'Ephesians 4:11 - And he gave...the pastors'
+        verse: 'Ephesians 4:11 - And he gave...the pastors',
+        image_url: '/jesus-shepherding.jpg'
       },
       'Faith': {
         examples: 'Abraham, Elijah, George Mueller, pioneers of missions',
         ministries: 'Prayer ministry, mission advancement, building projects, faith-based initiatives, church planting',
-        verse: '1 Corinthians 12:9 - To another faith by the same Spirit'
+        verse: '1 Corinthians 12:9 - To another faith by the same Spirit',
+        image_url: '/abraham-faith.jpg'
       },
       'Evangelism': {
         examples: 'Philip, Peter at Pentecost, Paul, William Miller',
         ministries: 'Public evangelism, Bible work, literature evangelism, media evangelism, personal witnessing',
-        verse: 'Ephesians 4:11 - And he gave...the evangelists'
+        verse: 'Ephesians 4:11 - And he gave...the evangelists',
+        image_url: '/philip-evangelism.jpg'
       },
       'Apostleship': {
         examples: 'Paul, Peter, modern mission pioneers',
         ministries: 'Church planting, mission work, establishing new ministries, international missions, pioneering work',
-        verse: '1 Corinthians 12:28 - God has placed in the church first of all apostles'
+        verse: '1 Corinthians 12:28 - God has placed in the church first of all apostles',
+        image_url: '/apostleship.webp'
       },
       'Service/Helps': {
         examples: 'Dorcas (Tabitha), Epaphroditus, Martha',
         ministries: 'Deacon/deaconess, hospitality team, maintenance, setup/cleanup, Community Services, food ministry',
-        verse: 'Romans 12:7 - If it is serving, then serve'
+        verse: 'Romans 12:7 - If it is serving, then serve',
+        image_url: '/tabitha-service.jpg'
       },
       'Mercy': {
         examples: 'Good Samaritan, Jesus healing the sick, Mother Teresa',
         ministries: 'Hospital visitation, Community Services, grief support, nursing home ministry, addiction recovery',
-        verse: 'Romans 12:8 - If it is to show mercy, do it cheerfully'
+        verse: 'Romans 12:8 - If it is to show mercy, do it cheerfully',
+        image_url: '/good-samaritan-mercy.jpg'
       },
       'Giving': {
         examples: 'Barnabas, the Macedonian churches, Joseph of Arimathea',
         ministries: 'Stewardship committee, funding special projects, scholarship programs, building campaigns, mission support',
-        verse: 'Romans 12:8 - If it is to give, then give generously'
+        verse: 'Romans 12:8 - If it is to give, then give generously',
+        image_url: '/macedonian-giving.jpeg'
       },
       'Hospitality': {
         examples: 'Abraham, Lydia, Priscilla and Aquila',
         ministries: 'Welcoming ministry, hosting small groups, fellowship dinners, guest accommodation, missionary hosting',
-        verse: '1 Peter 4:9 - Offer hospitality to one another without grumbling'
+        verse: '1 Peter 4:9 - Offer hospitality to one another without grumbling',
+        image_url: '/lydia-hospitality.jpg'
       }
     }
 
@@ -231,12 +248,11 @@ export default {
 }
 
 .gift-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto 1rem;
-  border-radius: 50%;
+  width: calc(100% + 4rem);
+  height: 160px;
+  margin: -2rem -2rem 1.5rem;
+  border-radius: 8px 8px 0 0;
   overflow: hidden;
-  background: var(--background);
 }
 
 .gift-icon img {
