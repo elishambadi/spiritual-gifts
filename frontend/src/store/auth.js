@@ -7,8 +7,7 @@ const state = reactive({
 
 export const useAuth = () => {
   const checkAdmin = (password) => {
-    // Simple password check - in production, use proper authentication
-    const ADMIN_PASSWORD = 'parklandsadmin2024'
+    const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'admin123' // Default password for development
     if (password === ADMIN_PASSWORD) {
       state.isAdmin = true
       state.adminPassword = password

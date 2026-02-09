@@ -28,7 +28,7 @@ const router = createRouter({
 const { initAuth, state } = useAuth()
 initAuth()
 
-// Navigation guard
+// Navigation guard to protect admin route
 router.beforeEach((to, from, next) => {
   if (to.meta.requiresAuth && !state.isAdmin) {
     next('/login')
