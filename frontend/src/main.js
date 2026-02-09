@@ -13,7 +13,7 @@ const router = createRouter({
     { path: '/', component: GiftsView },
     { path: '/survey', component: SurveyView },
     { path: '/results/:id', component: ResultsView, props: true },
-    { path: '/admin', component: AdminView }
+    { path: '/admin-reports', component: AdminView }
   ]
 })
 

@@ -132,7 +132,7 @@
         </div>
         <div v-else class="community-grid">
           <div v-for="summary in communitySummaries" :key="summary.response_id" class="community-card">
-            <div class="community-name">{{ summary.name }}</div>
+            <div class="community-name">{{ getFirstName(summary.name) }}</div>
             <div class="community-gifts">
               <span v-for="(gift, index) in summary.top_gifts" :key="index" class="community-gift">
                 {{ gift }}
@@ -371,6 +371,11 @@ export default {
       })
     }
 
+    const getFirstName = (fullName) => {
+      if (!fullName) return 'Anonymous'
+      return fullName.split(' ')[0]
+    }
+
     return {
       loading,
       error,
@@ -383,6 +388,7 @@ export default {
       getGiftDescription,
       getGiftDetails,
       getGiftColor,
+      getFirstName,
       startNewSurvey,
       printResults,
       shareResults
