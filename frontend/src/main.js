@@ -4,6 +4,7 @@ import App from './App.vue'
 import GiftsView from './views/GiftsView.vue'
 import SurveyView from './views/SurveyView.vue'
 import ResultsView from './views/ResultsView.vue'
+import AdminView from './views/AdminView.vue'
 import './style.css'
 
 const router = createRouter({
@@ -11,7 +12,8 @@ const router = createRouter({
   routes: [
     { path: '/', component: GiftsView },
     { path: '/survey', component: SurveyView },
-    { path: '/results/:id', component: ResultsView, props: true }
+    { path: '/results/:id', component: ResultsView, props: true },
+    { path: '/admin', component: AdminView }
   ]
 })
 

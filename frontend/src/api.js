@@ -43,5 +43,15 @@ export const surveyAPI = {
   // Mark survey as complete
   completeSurvey(id) {
     return api.post(`/survey-responses/${id}/complete/`)
+  },
+
+  // Admin leaderboard: top 5 performers per gift
+  getAdminLeaderboard() {
+    return api.get('/survey-responses/admin_leaderboard/')
+  },
+
+  // Public summaries: top 3 gifts per completed response
+  getPublicSummaries() {
+    return api.get('/survey-responses/public_summaries/')
   }
 }

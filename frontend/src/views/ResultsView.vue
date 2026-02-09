@@ -118,6 +118,30 @@
         </div>
       </div>
 
+      <!-- Community Results -->
+      <div class="card">
+        <h3 style="margin-bottom: 1.5rem;">Community Top Gifts</h3>
+        <p style="margin-bottom: 1.5rem; color: var(--text-secondary);">
+          See the top 3 spiritual gifts from others who completed the survey.
+        </p>
+        <div v-if="communityLoading" class="loading">
+          <p>Loading community results...</p>
+        </div>
+        <div v-else-if="communityError" class="error">
+          <p>{{ communityError }}</p>
+        </div>
+        <div v-else class="community-grid">
+          <div v-for="summary in communitySummaries" :key="summary.response_id" class="community-card">
+            <div class="community-name">{{ summary.name }}</div>
+            <div class="community-gifts">
+              <span v-for="(gift, index) in summary.top_gifts" :key="index" class="community-gift">
+                {{ gift }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Actions -->
       <div class="card" style="text-align: center;">
         <button class="btn btn-primary" @click="startNewSurvey">
@@ -142,6 +166,9 @@ export default {
     const error = ref(null)
     const results = ref([])
     const surveyResponse = ref({})
+    const communitySummaries = ref([])
+    const communityLoading = ref(true)
+    const communityError = ref(null)
 
     const giftDescriptions = {
       'Leadership': 'You have the ability to set goals in accordance with God\'s purposes and communicate them to others in such a way that they work together to accomplish those goals.',
@@ -270,6 +297,17 @@ export default {
         loading.value = false
         console.error(err)
       }
+
+      // Load community summaries
+      try {
+        const summariesResponse = await surveyAPI.getPublicSummaries()
+        communitySummaries.value = summariesResponse.data
+        communityLoading.value = false
+      } catch (err) {
+        communityError.value = 'Failed to load community results.'
+        communityLoading.value = false
+        console.error(err)
+      }
     })
 
     const formatDate = (dateString) => {
@@ -338,6 +376,9 @@ export default {
       error,
       results,
       surveyResponse,
+      communitySummaries,
+      communityLoading,
+      communityError,
       formatDate,
       getGiftDescription,
       getGiftDetails,
@@ -351,6 +392,41 @@ export default {
 </script>
 
 <style scoped>
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.community-card {
+  background: var(--background);
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--secondary-color);
+}
+
+.community-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.community-gifts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.community-gift {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0.5rem;
+  background: rgba(102, 126, 234, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+}
+
 @media print {
   button {
     display: none;
