@@ -81,7 +81,7 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(survey_response)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAdminUser])
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def admin_leaderboard(self, request):
         """Admin-only leaderboard: top 5 performers by percentage for each gift."""
         responses = SurveyResponse.objects.filter(is_complete=True).prefetch_related(
