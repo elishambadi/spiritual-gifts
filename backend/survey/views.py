@@ -2,14 +2,28 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAdminUser
+from rest_framework.views import APIView
 from django.utils import timezone
 from .models import SpiritualGift, Question, SurveyResponse, Answer
+from .archetypes import ARCHETYPES, match_archetypes, archetype_summary
 from .serializers import (
     SpiritualGiftSerializer, 
     QuestionSerializer, 
     SurveyResponseSerializer,
     SurveyResultSerializer
 )
+
+
+class ArchetypeListView(APIView):
+    """API endpoint for listing all spiritual gift archetypes."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        archetypes = [
+            archetype_summary(archetype, percentage=None, is_primary=False)
+            for archetype in ARCHETYPES
+        ]
+        return Response(archetypes)
 
 
 class SpiritualGiftViewSet(viewsets.ReadOnlyModelViewSet):
@@ -67,8 +81,19 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
                 'percentage': round(percentage, 2)
             })
         
+        # Match spiritual gift blends to archetypes
+        gift_scores_dict = dict(gift_scores)
+        archetypes = [
+            archetype_summary(archetype, percentage, is_primary=(index == 0))
+            for index, (archetype, _score, percentage)
+            in enumerate(match_archetypes(gift_scores_dict)[:2])
+        ]
+        
         serializer = SurveyResultSerializer(results, many=True)
-        return Response(serializer.data)
+        return Response({
+            'results': serializer.data,
+            'archetypes': archetypes
+        })
     
     @action(detail=True, methods=['post'])
     def complete(self, request, id=None):
@@ -125,6 +150,61 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
             })
 
         return Response(leaderboard)
+
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
+    def admin_archetypes(self, request):
+        """Admin roster: every completed submission grouped by its primary archetype."""
+        responses = SurveyResponse.objects.filter(is_complete=True).prefetch_related(
+            'answers__question__spiritual_gift'
+        )
+
+        roster = {archetype['name']: [] for archetype in ARCHETYPES}
+
+        for response in responses:
+            gift_scores = {}
+            for answer in response.answers.all():
+                gift_name = answer.question.spiritual_gift.name
+                gift_scores[gift_name] = gift_scores.get(gift_name, 0) + answer.rating
+
+            if not gift_scores:
+                continue
+
+            matches = match_archetypes(gift_scores)
+            if not matches:
+                continue
+
+            primary, _score, percentage = matches[0]
+
+            top_gifts = [
+                gift_name for gift_name, _ in sorted(
+                    gift_scores.items(), key=lambda item: item[1], reverse=True
+                )[:3]
+            ]
+
+            roster[primary['name']].append({
+                'response_id': str(response.id),
+                'name': response.name or 'Anonymous',
+                'match_percentage': percentage,
+                'top_gifts': top_gifts,
+            })
+
+        archetype_roster = []
+        for archetype in ARCHETYPES:
+            members = sorted(
+                roster[archetype['name']],
+                key=lambda item: item['match_percentage'],
+                reverse=True
+            )
+            archetype_roster.append({
+                'name': archetype['name'],
+                'family': archetype['family'],
+                'tagline': archetype['tagline'],
+                'signature': archetype['signature'],
+                'member_count': len(members),
+                'members': members,
+            })
+
+        return Response(archetype_roster)
 
     @action(detail=False, methods=['get'], permission_classes=[AllowAny])
     def public_summaries(self, request):

@@ -60,6 +60,61 @@
         </p>
       </div>
 
+      <!-- Talent Archetype -->
+      <div v-if="archetypes.length" class="card">
+        <h3 style="margin-bottom: 1.5rem; text-align: center;">Your Talent Archetype</h3>
+        <p style="text-align: center; margin-bottom: 1.5rem; color: var(--text-secondary);">
+          Your gift blend points to a natural way of serving the church.
+        </p>
+        <div
+          v-for="(archetype, index) in archetypes"
+          :key="index"
+          class="archetype-card"
+          :class="{ 'archetype-primary': archetype.is_primary }"
+        >
+          <div class="archetype-head">
+            <div>
+              <span class="archetype-badge" :class="'family-' + archetype.family.toLowerCase()">
+                {{ archetype.family }}
+              </span>
+              <h4 style="margin: 0.5rem 0 0.25rem; font-size: 1.5rem; color: var(--secondary-color);">
+                {{ archetype.name }}
+                <span v-if="archetype.is_primary" style="font-size: 0.9rem; color: var(--text-secondary);">
+                  (Primary match)
+                </span>
+              </h4>
+              <p style="font-style: italic; color: var(--text-secondary); margin: 0;">
+                {{ archetype.tagline }}
+              </p>
+            </div>
+            <div class="match-score">
+              <span class="match-percentage">{{ archetype.match_percentage }}%</span>
+              <span class="match-label">match</span>
+            </div>
+          </div>
+          <p style="line-height: 1.8; margin: 1rem 0;">
+            {{ archetype.description }}
+          </p>
+          <div style="margin-bottom: 0.75rem;">
+            <strong>Signature Gifts:</strong>
+            <div class="signature-chips">
+              <span v-for="gift in archetype.signature" :key="gift" class="signature-chip">
+                {{ gift }}
+              </span>
+            </div>
+          </div>
+          <div style="margin-bottom: 0.75rem;">
+            <strong>Fits These Roles:</strong>
+            <p style="margin-top: 0.35rem; color: var(--text-secondary); line-height: 1.7;">
+              {{ archetype.roles.join(', ') }}
+            </p>
+          </div>
+          <div v-if="archetype.engage" style="padding: 0.75rem; background: var(--background); border-radius: 6px; border-left: 4px solid var(--secondary-color);">
+            <strong>For Leaders:</strong> {{ archetype.engage }}
+          </div>
+        </div>
+      </div>
+
       <!-- Gift Descriptions for Top 3 -->
       <div class="card">
         <h3 style="margin-bottom: 1.5rem;">Understanding Your Top Gifts</h3>
@@ -165,6 +220,7 @@ export default {
     const loading = ref(true)
     const error = ref(null)
     const results = ref([])
+    const archetypes = ref([])
     const surveyResponse = ref({})
     const communitySummaries = ref([])
     const communityLoading = ref(true)
@@ -289,7 +345,8 @@ export default {
         
         // Get results
         const resultsData = await surveyAPI.getSurveyResults(surveyId)
-        results.value = resultsData.data
+        results.value = resultsData.data.results
+        archetypes.value = resultsData.data.archetypes || []
         
         loading.value = false
       } catch (err) {
@@ -380,6 +437,7 @@ export default {
       loading,
       error,
       results,
+      archetypes,
       surveyResponse,
       communitySummaries,
       communityLoading,
@@ -431,6 +489,89 @@ export default {
   background: rgba(102, 126, 234, 0.1);
   border-radius: 4px;
   display: inline-block;
+}
+
+.archetype-card {
+  background: var(--background);
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  margin-bottom: 1.25rem;
+}
+
+.archetype-card.archetype-primary {
+  border: 2px solid var(--secondary-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.archetype-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.archetype-badge {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.archetype-badge.family-reach {
+  background: rgba(245, 101, 101, 0.15);
+  color: #c53030;
+}
+
+.archetype-badge.family-keep {
+  background: rgba(72, 187, 120, 0.15);
+  color: #276749;
+}
+
+.archetype-badge.family-build {
+  background: rgba(102, 126, 234, 0.15);
+  color: #4c51bf;
+}
+
+.match-score {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.match-percentage {
+  display: block;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--secondary-color);
+  line-height: 1.1;
+}
+
+.match-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.signature-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.signature-chip {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.25rem 0.75rem;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 999px;
 }
 
 @media print {

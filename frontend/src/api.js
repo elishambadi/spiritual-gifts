@@ -19,6 +19,11 @@ export const surveyAPI = {
   getGifts() {
     return api.get('/spiritual-gifts/')
   },
+
+  // Get all talent archetypes
+  getArchetypes() {
+    return api.get('/archetypes/')
+  },
   
   // Create a new survey response
   createSurveyResponse(data) {
@@ -48,6 +53,11 @@ export const surveyAPI = {
   // Admin leaderboard: top 5 performers per gift
   getAdminLeaderboard() {
     return api.get('/survey-responses/admin_leaderboard/')
+  },
+
+  // Admin archetype roster: submissions grouped by primary archetype
+  getAdminArchetypes() {
+    return api.get('/survey-responses/admin_archetypes/')
   },
 
   // Public summaries: top 3 gifts per completed response

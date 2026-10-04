@@ -6,6 +6,7 @@
       
       <nav class="header-nav">
         <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">About Spiritual Gifts</router-link>
+        <router-link to="/archetypes" class="nav-link" :class="{ active: $route.path === '/archetypes' }">Archetypes</router-link>
         <router-link to="/survey" class="nav-link" :class="{ active: $route.path === '/survey' }">Take Survey</router-link>
         <router-link v-if="authState.isAdmin" to="/admin-reports" class="nav-link" :class="{ active: $route.path === '/admin-reports' }">Admin Reports</router-link>
         <button v-if="authState.isAdmin" @click="handleLogout" class="nav-link logout-btn">Logout</button>

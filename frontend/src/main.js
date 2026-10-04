@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import App from './App.vue'
 import GiftsView from './views/GiftsView.vue'
+import ArchetypesView from './views/ArchetypesView.vue'
 import SurveyView from './views/SurveyView.vue'
 import ResultsView from './views/ResultsView.vue'
 import AdminView from './views/AdminView.vue'
@@ -13,6 +14,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: GiftsView },
+    { path: '/archetypes', component: ArchetypesView },
     { path: '/survey', component: SurveyView },
     { path: '/results/:id', component: ResultsView, props: true },
     { path: '/login', component: LoginView },
