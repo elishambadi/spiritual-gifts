@@ -297,7 +297,7 @@
                   <li
                     v-for="(member, index) in archetype.members"
                     :key="member.response_id"
-                    class="performer-row"
+                    class="performer-row member-row"
                     :class="'rank-' + (index + 1)"
                   >
                     <span class="rank-badge">{{ index + 1 }}</span>
@@ -922,7 +922,7 @@ export default {
 /* Gift grid */
 .gift-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
   gap: 1.5rem;
   align-items: start;
 }
@@ -984,6 +984,10 @@ export default {
   transition: background 0.2s ease;
 }
 
+.performer-row.member-row {
+  grid-template-columns: 32px 1fr;
+}
+
 .performer-row:hover {
   background: rgba(102, 126, 234, 0.05);
 }
@@ -1031,25 +1035,26 @@ export default {
 
 .performer-top {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.5rem;
+  gap: 0.15rem 0.75rem;
   margin-bottom: 0.3rem;
 }
 
 .performer-name {
   font-weight: 600;
   color: var(--text-primary);
-  flex: 1;
+  flex: 1 1 60%;
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .performer-share {
   font-weight: 700;
   color: var(--secondary-color);
   font-size: 0.9rem;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .share-bar {
