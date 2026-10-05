@@ -6,173 +6,329 @@
         <div>
           <h2>Admin Reports</h2>
           <p class="subtitle">
-            Top 5 participants per spiritual gift, ranked by share of their personal score.
+            Gift leaderboards and archetype rosters built from completed surveys.
           </p>
         </div>
         <div class="header-actions">
           <span v-if="lastUpdated" class="updated">Updated {{ lastUpdated }}</span>
-          <button class="btn btn-secondary" @click="retry" :disabled="refreshing">
+          <button class="btn btn-secondary" @click="loadAll" :disabled="refreshing">
             {{ refreshing ? 'Refreshing...' : 'Refresh' }}
           </button>
-          <button class="btn btn-primary" @click="exportCsv" :disabled="!hasResults">
+          <button class="btn btn-primary" @click="exportCsv" :disabled="!canExport">
             Export CSV
           </button>
-          <button class="btn btn-primary" @click="printReport" :disabled="!hasResults">
+          <button class="btn btn-primary" @click="printReport" :disabled="!canExport">
             Print
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Loading -->
-    <div v-if="loading" class="loading">
-      <div class="loading-spinner"></div>
-      <p>Loading leaderboard data...</p>
-    </div>
-
-    <!-- Error -->
-    <div v-else-if="error" class="error card">
-      <p>{{ error }}</p>
-      <button class="btn btn-secondary" style="margin-top: 1rem;" @click="retry">Try again</button>
-    </div>
-
-    <!-- Content -->
-    <template v-else>
-      <!-- Overview stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <span class="stat-value">{{ stats.giftsWithData }}<span class="stat-total">/{{ stats.totalGifts }}</span></span>
-          <span class="stat-label">Gifts with data</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ stats.uniqueParticipants }}</span>
-          <span class="stat-label">Participants ranked</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ stats.totalEntries }}</span>
-          <span class="stat-label">Leaderboard entries</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value stat-value--text">{{ stats.leadingGift }}</span>
-          <span class="stat-label">Most represented gift</span>
-        </div>
-      </div>
-
-      <!-- Metric explanation -->
-      <div class="card info-note">
-        <strong>How to read this:</strong>
-        Share is the percentage of a participant's <em>own</em> total score that this gift represents.
-        It highlights relative gifting strength, not absolute performance, so it is not comparable across participants.
-      </div>
-
-      <!-- Controls -->
-      <div class="card controls">
-        <div class="control">
-          <label for="admin-search">Search</label>
-          <input
-            id="admin-search"
-            type="text"
-            v-model="searchQuery"
-            placeholder="Filter by participant or gift name"
-          />
-        </div>
-
-        <div class="control">
-          <label for="admin-sort">Sort gifts by</label>
-          <select id="admin-sort" v-model="sortBy">
-            <option value="name">Gift name (A-Z)</option>
-            <option value="participants">Most participants</option>
-            <option value="topShare">Highest top share</option>
-          </select>
-        </div>
-
-        <div class="control control--toggle">
-          <label class="toggle">
-            <input type="checkbox" v-model="hideEmpty" />
-            <span>Hide gifts with no data</span>
-          </label>
-        </div>
-
-        <div class="control control--full">
-          <label>Jump to gift</label>
-          <div class="pills">
-            <button
-              class="pill"
-              :class="{ active: activeGift === 'all' }"
-              @click="activeGift = 'all'"
-            >
-              All
-            </button>
-            <button
-              v-for="name in giftNames"
-              :key="name"
-              class="pill"
-              :class="{ active: activeGift === name }"
-              @click="activeGift = name"
-            >
-              {{ name }}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Empty results -->
-      <div v-if="!visibleGifts.length" class="card no-results">
-        <p>No gifts match your filters.</p>
-        <button class="btn btn-secondary" style="margin-top: 1rem;" @click="resetFilters">Clear filters</button>
-      </div>
-
-      <!-- Gift grid -->
-      <div v-else class="gift-grid">
-        <div
-          v-for="gift in visibleGifts"
-          :key="gift.gift_name"
-          class="card gift-card"
-          :id="'gift-' + slugify(gift.gift_name)"
+      <!-- Tabs -->
+      <div class="tabs" role="tablist">
+        <button
+          class="tab"
+          role="tab"
+          :class="{ active: activeTab === 'leaderboard' }"
+          :aria-selected="activeTab === 'leaderboard'"
+          @click="activeTab = 'leaderboard'"
         >
-          <div class="gift-card-header">
-            <h3 class="gift-title">{{ gift.gift_name }}</h3>
-            <span class="count-badge">
-              {{ gift.top_performers.length }}
-              {{ gift.top_performers.length === 1 ? 'entry' : 'entries' }}
-            </span>
-          </div>
-
-          <div v-if="gift.top_performers.length === 0" class="no-data">
-            <p>No completed surveys for this gift yet.</p>
-          </div>
-
-          <ol v-else class="performer-list">
-            <li
-              v-for="(performer, index) in gift.top_performers"
-              :key="performer.response_id + '-' + index"
-              class="performer-row"
-              :class="'rank-' + (index + 1)"
-            >
-              <span class="rank-badge">{{ index + 1 }}</span>
-              <div class="performer-main">
-                <div class="performer-top">
-                  <span class="performer-name">{{ performer.name }}</span>
-                  <span class="performer-share">{{ performer.percentage }}%</span>
-                </div>
-                <div
-                  class="share-bar"
-                  role="progressbar"
-                  :aria-valuenow="performer.percentage"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  :aria-label="performer.name + ' share for ' + gift.gift_name"
-                >
-                  <div class="share-fill" :style="{ width: performer.percentage + '%' }"></div>
-                </div>
-              </div>
-              <span class="performer-score" :title="'Raw score: ' + performer.score">
-                {{ performer.score }}
-              </span>
-            </li>
-          </ol>
-        </div>
+          Gift Leaderboard
+        </button>
+        <button
+          class="tab"
+          role="tab"
+          :class="{ active: activeTab === 'archetypes' }"
+          :aria-selected="activeTab === 'archetypes'"
+          @click="activeTab = 'archetypes'"
+        >
+          Archetype Roster
+        </button>
       </div>
+    </div>
+
+    <!-- ===================== LEADERBOARD TAB ===================== -->
+    <template v-if="activeTab === 'leaderboard'">
+      <div v-if="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading leaderboard data...</p>
+      </div>
+
+      <div v-else-if="error" class="error card">
+        <p>{{ error }}</p>
+        <button class="btn btn-secondary" style="margin-top: 1rem;" @click="retryLeaderboard">Try again</button>
+      </div>
+
+      <template v-else>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ leaderboardStats.giftsWithData }}<span class="stat-total">/{{ leaderboardStats.totalGifts }}</span></span>
+            <span class="stat-label">Gifts with data</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ leaderboardStats.uniqueParticipants }}</span>
+            <span class="stat-label">Participants ranked</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ leaderboardStats.totalEntries }}</span>
+            <span class="stat-label">Leaderboard entries</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value stat-value--text">{{ leaderboardStats.leadingGift }}</span>
+            <span class="stat-label">Most represented gift</span>
+          </div>
+        </div>
+
+        <div class="card info-note">
+          <strong>How to read this:</strong>
+          Share is the percentage of a participant's <em>own</em> total score that this gift represents.
+          It highlights relative gifting strength, not absolute performance, so it is not comparable across participants.
+        </div>
+
+        <div class="card controls">
+          <div class="control">
+            <label for="admin-search">Search</label>
+            <input
+              id="admin-search"
+              type="text"
+              v-model="searchQuery"
+              placeholder="Filter by participant or gift name"
+            />
+          </div>
+
+          <div class="control">
+            <label for="admin-sort">Sort gifts by</label>
+            <select id="admin-sort" v-model="sortBy">
+              <option value="name">Gift name (A-Z)</option>
+              <option value="participants">Most participants</option>
+              <option value="topShare">Highest top share</option>
+            </select>
+          </div>
+
+          <div class="control control--toggle">
+            <label class="toggle">
+              <input type="checkbox" v-model="hideEmpty" />
+              <span>Hide gifts with no data</span>
+            </label>
+          </div>
+
+          <div class="control control--full">
+            <label>Jump to gift</label>
+            <div class="pills">
+              <button class="pill" :class="{ active: activeGift === 'all' }" @click="activeGift = 'all'">All</button>
+              <button
+                v-for="name in giftNames"
+                :key="name"
+                class="pill"
+                :class="{ active: activeGift === name }"
+                @click="activeGift = name"
+              >
+                {{ name }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!visibleGifts.length" class="card no-results">
+          <p>No gifts match your filters.</p>
+          <button class="btn btn-secondary" style="margin-top: 1rem;" @click="resetFilters">Clear filters</button>
+        </div>
+
+        <div v-else class="gift-grid">
+          <div
+            v-for="gift in visibleGifts"
+            :key="gift.gift_name"
+            class="card gift-card"
+            :id="'gift-' + slugify(gift.gift_name)"
+          >
+            <div class="gift-card-header">
+              <h3 class="gift-title">{{ gift.gift_name }}</h3>
+              <span class="count-badge">
+                {{ gift.top_performers.length }}
+                {{ gift.top_performers.length === 1 ? 'entry' : 'entries' }}
+              </span>
+            </div>
+
+            <div v-if="gift.top_performers.length === 0" class="no-data">
+              <p>No completed surveys for this gift yet.</p>
+            </div>
+
+            <ol v-else class="performer-list">
+              <li
+                v-for="(performer, index) in gift.top_performers"
+                :key="performer.response_id + '-' + index"
+                class="performer-row"
+                :class="'rank-' + (index + 1)"
+              >
+                <span class="rank-badge">{{ index + 1 }}</span>
+                <div class="performer-main">
+                  <div class="performer-top">
+                    <span class="performer-name">{{ performer.name }}</span>
+                    <span class="performer-share">{{ performer.percentage }}%</span>
+                  </div>
+                  <div
+                    class="share-bar"
+                    role="progressbar"
+                    :aria-valuenow="performer.percentage"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    :aria-label="performer.name + ' share for ' + gift.gift_name"
+                  >
+                    <div class="share-fill" :style="{ width: performer.percentage + '%' }"></div>
+                  </div>
+                </div>
+                <span class="performer-score" :title="'Raw score: ' + performer.score">
+                  {{ performer.score }}
+                </span>
+              </li>
+            </ol>
+          </div>
+        </div>
+      </template>
+    </template>
+
+    <!-- ===================== ARCHETYPES TAB ===================== -->
+    <template v-else>
+      <div v-if="archetypesLoading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Loading archetype roster...</p>
+      </div>
+
+      <div v-else-if="archetypesError" class="error card">
+        <p>{{ archetypesError }}</p>
+        <button class="btn btn-secondary" style="margin-top: 1rem;" @click="retryArchetypes">Try again</button>
+      </div>
+
+      <template v-else>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-value">{{ archetypeStats.totalPlaced }}</span>
+            <span class="stat-label">People placed</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value">{{ archetypeStats.active }}<span class="stat-total">/{{ archetypeStats.total }}</span></span>
+            <span class="stat-label">Archetypes filled</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value stat-value--text">{{ archetypeStats.largest.name }}</span>
+            <span class="stat-label">Largest group ({{ archetypeStats.largest.member_count }})</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value stat-value--text">{{ archetypeStats.leadingFamily }}</span>
+            <span class="stat-label">Strongest family</span>
+          </div>
+        </div>
+
+        <div class="card info-note">
+          <strong>How to read this:</strong>
+          Every completed survey is placed in the archetype whose signature gifts best match their top gifts.
+          Members are listed strongest match first, and each person's top three gifts are shown by name.
+        </div>
+
+        <div class="card controls">
+          <div class="control">
+            <label for="arch-search">Search</label>
+            <input
+              id="arch-search"
+              type="text"
+              v-model="archetypeSearch"
+              placeholder="Filter by archetype, member, or gift"
+            />
+          </div>
+
+          <div class="control">
+            <label for="arch-family">Family</label>
+            <select id="arch-family" v-model="familyFilter">
+              <option value="all">All families</option>
+              <option v-for="family in families" :key="family" :value="family">{{ family }}</option>
+            </select>
+          </div>
+
+          <div class="control control--toggle">
+            <label class="toggle">
+              <input type="checkbox" v-model="hideEmptyArchetypes" />
+              <span>Hide archetypes with no members</span>
+            </label>
+          </div>
+        </div>
+
+        <div v-if="!filteredArchetypes.length" class="card no-results">
+          <p>No archetypes match your filters.</p>
+          <button class="btn btn-secondary" style="margin-top: 1rem;" @click="resetArchetypeFilters">Clear filters</button>
+        </div>
+
+        <template v-else>
+          <template v-for="family in visibleFamilies" :key="family">
+            <div class="family-header">
+              <h3>{{ family }}</h3>
+              <p>{{ familyMeta[family] }}</p>
+            </div>
+
+            <div class="gift-grid">
+              <div
+                v-for="archetype in archetypesInFamily(family)"
+                :key="archetype.name"
+                class="card gift-card"
+              >
+                <div class="archetype-head">
+                  <div>
+                    <span class="archetype-badge" :class="'family-' + archetype.family.toLowerCase()">
+                      {{ archetype.family }}
+                    </span>
+                    <h3 class="gift-title">{{ archetype.name }}</h3>
+                    <p class="archetype-tagline">{{ archetype.tagline }}</p>
+                  </div>
+                  <div class="member-count">
+                    <span class="member-count-num">{{ archetype.member_count }}</span>
+                    <span class="member-count-label">people</span>
+                  </div>
+                </div>
+
+                <div class="signature-chips">
+                  <span v-for="gift in archetype.signature" :key="gift" class="signature-chip">
+                    {{ gift }}
+                  </span>
+                </div>
+
+                <div v-if="archetype.members.length === 0" class="no-data">
+                  <p>No completed surveys matched this archetype yet.</p>
+                </div>
+
+                <ol v-else class="performer-list">
+                  <li
+                    v-for="(member, index) in archetype.members"
+                    :key="member.response_id"
+                    class="performer-row"
+                    :class="'rank-' + (index + 1)"
+                  >
+                    <span class="rank-badge">{{ index + 1 }}</span>
+                    <div class="performer-main">
+                      <div class="performer-top">
+                        <span class="performer-name">{{ member.name }}</span>
+                        <span class="performer-share">{{ member.match_percentage }}%</span>
+                      </div>
+                      <div
+                        class="share-bar"
+                        role="progressbar"
+                        :aria-valuenow="member.match_percentage"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                        :aria-label="member.name + ' match for ' + archetype.name"
+                      >
+                        <div class="share-fill" :style="{ width: member.match_percentage + '%' }"></div>
+                      </div>
+                      <div class="member-gifts">
+                        <span v-for="gift in member.top_gifts" :key="gift" class="gift-tag">
+                          {{ gift }}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </template>
+        </template>
+      </template>
     </template>
   </div>
 </template>
@@ -184,27 +340,41 @@ import { surveyAPI } from '../api'
 export default {
   name: 'AdminView',
   setup() {
-    const loading = ref(true)
+    const activeTab = ref('leaderboard')
     const refreshing = ref(false)
-    const error = ref(null)
-    const leaderboard = ref([])
     const lastUpdated = ref('')
 
+    // Leaderboard state
+    const loading = ref(true)
+    const error = ref(null)
+    const leaderboard = ref([])
     const searchQuery = ref('')
     const sortBy = ref('name')
     const hideEmpty = ref(true)
     const activeGift = ref('all')
 
+    // Archetype state
+    const archetypesLoading = ref(true)
+    const archetypesError = ref(null)
+    const archetypeRoster = ref([])
+    const archetypeSearch = ref('')
+    const familyFilter = ref('all')
+    const hideEmptyArchetypes = ref(true)
+
+    const families = ['Reach', 'Keep', 'Build']
+    const familyMeta = {
+      Reach: 'Outward voice: grow & win',
+      Keep: 'Inward care: retain & deepen',
+      Build: 'Operations: make it run'
+    }
+
+    /* ---------------- Data loading ---------------- */
+
     const fetchLeaderboard = async () => {
-      refreshing.value = true
       error.value = null
       try {
         const response = await surveyAPI.getAdminLeaderboard()
         leaderboard.value = response.data
-        lastUpdated.value = new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit'
-        })
       } catch (err) {
         if (err.response && err.response.status === 403) {
           error.value = 'Access denied. Admin privileges required.'
@@ -214,14 +384,49 @@ export default {
         console.error(err)
       } finally {
         loading.value = false
-        refreshing.value = false
       }
     }
 
-    const retry = () => {
+    const fetchArchetypes = async () => {
+      archetypesError.value = null
+      try {
+        const response = await surveyAPI.getAdminArchetypes()
+        archetypeRoster.value = response.data
+      } catch (err) {
+        if (err.response && err.response.status === 403) {
+          archetypesError.value = 'Access denied. Admin privileges required.'
+        } else {
+          archetypesError.value = 'Failed to load archetype roster. Please try again.'
+        }
+        console.error(err)
+      } finally {
+        archetypesLoading.value = false
+      }
+    }
+
+    const loadAll = async () => {
+      refreshing.value = true
+      await Promise.all([fetchLeaderboard(), fetchArchetypes()])
+      lastUpdated.value = new Date().toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+      refreshing.value = false
+    }
+
+    const retryLeaderboard = () => {
       loading.value = true
       fetchLeaderboard()
     }
+
+    const retryArchetypes = () => {
+      archetypesLoading.value = true
+      fetchArchetypes()
+    }
+
+    /* ---------------- Helpers ---------------- */
+
+    const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 
     const resetFilters = () => {
       searchQuery.value = ''
@@ -230,15 +435,17 @@ export default {
       activeGift.value = 'all'
     }
 
-    const slugify = (value) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    const resetArchetypeFilters = () => {
+      archetypeSearch.value = ''
+      familyFilter.value = 'all'
+      hideEmptyArchetypes.value = true
+    }
+
+    /* ---------------- Leaderboard computed ---------------- */
 
     const giftNames = computed(() => leaderboard.value.map((gift) => gift.gift_name))
 
-    const hasResults = computed(() =>
-      leaderboard.value.some((gift) => gift.top_performers.length > 0)
-    )
-
-    const stats = computed(() => {
+    const leaderboardStats = computed(() => {
       const totalGifts = leaderboard.value.length
       const giftsWithData = leaderboard.value.filter(
         (gift) => gift.top_performers.length > 0
@@ -311,7 +518,122 @@ export default {
       })
     })
 
+    /* ---------------- Archetype computed ---------------- */
+
+    const archetypeStats = computed(() => {
+      const roster = archetypeRoster.value
+      const totalPlaced = roster.reduce((sum, a) => sum + a.member_count, 0)
+      const active = roster.filter((a) => a.member_count > 0).length
+
+      let largest = { name: '—', member_count: 0 }
+      const familyTotals = {}
+
+      roster.forEach((a) => {
+        if (a.member_count > largest.member_count) {
+          largest = { name: a.name, member_count: a.member_count }
+        }
+        familyTotals[a.family] = (familyTotals[a.family] || 0) + a.member_count
+      })
+
+      let leadingFamily = '—'
+      let leadingCount = 0
+      Object.entries(familyTotals).forEach(([family, count]) => {
+        if (count > leadingCount) {
+          leadingCount = count
+          leadingFamily = family
+        }
+      })
+
+      return { totalPlaced, active, total: roster.length, largest, leadingFamily }
+    })
+
+    const filteredArchetypes = computed(() => {
+      const query = archetypeSearch.value.trim().toLowerCase()
+
+      let list = archetypeRoster.value.map((archetype) => {
+        if (!query) return archetype
+
+        const archetypeMatch =
+          archetype.name.toLowerCase().includes(query) ||
+          (archetype.tagline || '').toLowerCase().includes(query) ||
+          archetype.signature.some((gift) => gift.toLowerCase().includes(query))
+
+        if (archetypeMatch) return archetype
+
+        const members = archetype.members.filter((member) =>
+          (member.name || '').toLowerCase().includes(query)
+        )
+        return { ...archetype, members, member_count: members.length }
+      })
+
+      if (familyFilter.value !== 'all') {
+        list = list.filter((archetype) => archetype.family === familyFilter.value)
+      }
+
+      if (hideEmptyArchetypes.value) {
+        list = list.filter((archetype) => archetype.member_count > 0)
+      }
+
+      return list
+    })
+
+    const archetypesInFamily = (family) =>
+      filteredArchetypes.value.filter((archetype) => archetype.family === family)
+
+    const visibleFamilies = computed(() => {
+      if (familyFilter.value !== 'all') {
+        return archetypesInFamily(familyFilter.value).length ? [familyFilter.value] : []
+      }
+      return families.filter((family) => archetypesInFamily(family).length > 0)
+    })
+
+    /* ---------------- Export / print ---------------- */
+
+    const canExport = computed(() => {
+      if (activeTab.value === 'archetypes') {
+        return archetypeRoster.value.some((archetype) => archetype.member_count > 0)
+      }
+      return leaderboard.value.some((gift) => gift.top_performers.length > 0)
+    })
+
+    const toCsv = (rows) =>
+      rows
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n')
+
+    const download = (csv, filename) => {
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    }
+
     const exportCsv = () => {
+      const stamp = new Date().toISOString().slice(0, 10)
+
+      if (activeTab.value === 'archetypes') {
+        const rows = [['Archetype', 'Family', 'Rank', 'Name', 'Match (%)', 'Top Gifts']]
+        filteredArchetypes.value.forEach((archetype) => {
+          archetype.members.forEach((member, index) => {
+            rows.push([
+              archetype.name,
+              archetype.family,
+              index + 1,
+              member.name,
+              member.match_percentage,
+              member.top_gifts.join(' / ')
+            ])
+          })
+        })
+        download(toCsv(rows), `spiritual-gifts-archetypes-${stamp}.csv`)
+        return
+      }
+
       const rows = [['Gift', 'Rank', 'Name', 'Share (%)', 'Score']]
       visibleGifts.value.forEach((gift) => {
         gift.top_performers.forEach((performer, index) => {
@@ -324,44 +646,46 @@ export default {
           ])
         })
       })
-
-      const csv = rows
-        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
-        .join('\n')
-
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = `spiritual-gifts-leaderboard-${new Date().toISOString().slice(0, 10)}.csv`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
+      download(toCsv(rows), `spiritual-gifts-leaderboard-${stamp}.csv`)
     }
 
     const printReport = () => {
       window.print()
     }
 
-    onMounted(fetchLeaderboard)
+    onMounted(loadAll)
 
     return {
-      loading,
+      activeTab,
       refreshing,
-      error,
       lastUpdated,
+      loading,
+      error,
       searchQuery,
       sortBy,
       hideEmpty,
       activeGift,
-      giftNames,
-      hasResults,
-      stats,
-      visibleGifts,
-      retry,
-      resetFilters,
+      archetypesLoading,
+      archetypesError,
+      archetypeSearch,
+      familyFilter,
+      hideEmptyArchetypes,
+      families,
+      familyMeta,
+      loadAll,
+      retryLeaderboard,
+      retryArchetypes,
       slugify,
+      resetFilters,
+      resetArchetypeFilters,
+      giftNames,
+      leaderboardStats,
+      visibleGifts,
+      archetypeStats,
+      filteredArchetypes,
+      archetypesInFamily,
+      visibleFamilies,
+      canExport,
       exportCsv,
       printReport
     }
@@ -408,6 +732,36 @@ export default {
   font-size: 0.85rem;
   color: var(--text-secondary);
   white-space: nowrap;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  padding: 0.75rem 1.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--secondary-color);
+}
+
+.tab.active {
+  color: var(--secondary-color);
+  border-bottom-color: var(--secondary-color);
 }
 
 /* Stats */
@@ -611,7 +965,7 @@ export default {
   font-size: 0.9rem;
 }
 
-/* Performer list */
+/* Performer / member list */
 .performer-list {
   list-style: none;
   display: flex;
@@ -719,6 +1073,122 @@ export default {
   text-align: right;
 }
 
+.member-gifts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.gift-tag {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.15rem 0.55rem;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* Archetypes */
+.family-header {
+  margin: 2.5rem 0 1.25rem;
+  text-align: center;
+}
+
+.family-header h3 {
+  font-size: 1.75rem;
+  color: var(--secondary-color);
+  margin-bottom: 0.25rem;
+}
+
+.family-header p {
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+.archetype-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.archetype-badge {
+  display: inline-block;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.archetype-badge.family-reach {
+  background: rgba(245, 101, 101, 0.15);
+  color: #c53030;
+}
+
+.archetype-badge.family-keep {
+  background: rgba(72, 187, 120, 0.15);
+  color: #276749;
+}
+
+.archetype-badge.family-build {
+  background: rgba(102, 126, 234, 0.15);
+  color: #4c51bf;
+}
+
+.archetype-tagline {
+  font-style: italic;
+  color: var(--text-secondary);
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+}
+
+.member-count {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.member-count-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--secondary-color);
+  line-height: 1.1;
+}
+
+.member-count-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.signature-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.signature-chip {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.2rem 0.6rem;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 999px;
+}
+
 /* Empty state */
 .no-results {
   text-align: center;
@@ -752,11 +1222,22 @@ export default {
   .header-actions .btn {
     flex: 1;
   }
+
+  .tabs {
+    width: 100%;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.9rem;
+  }
 }
 
 /* Print */
 @media print {
   .header-actions,
+  .tabs,
   .controls {
     display: none;
   }
