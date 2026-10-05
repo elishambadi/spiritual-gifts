@@ -1,16 +1,16 @@
 <template>
-  <div class="admin-container">
+  <div class="rp-container">
     <!-- Header -->
-    <div class="card admin-header">
-      <div class="header-main">
+    <div class="card rp-header">
+      <div class="rp-header-main">
         <div>
           <h2>Admin Reports</h2>
-          <p class="subtitle">
+          <p class="rp-subtitle">
             Gift leaderboards and archetype rosters built from completed surveys.
           </p>
         </div>
-        <div class="header-actions">
-          <span v-if="lastUpdated" class="updated">Updated {{ lastUpdated }}</span>
+        <div class="rp-header-actions">
+          <span v-if="lastUpdated" class="rp-updated">Updated {{ lastUpdated }}</span>
           <button class="btn btn-secondary" @click="loadAll" :disabled="refreshing">
             {{ refreshing ? 'Refreshing...' : 'Refresh' }}
           </button>
@@ -24,9 +24,9 @@
       </div>
 
       <!-- Tabs -->
-      <div class="tabs" role="tablist">
+      <div class="rp-tabs" role="tablist">
         <button
-          class="tab"
+          class="rp-tab"
           role="tab"
           :class="{ active: activeTab === 'leaderboard' }"
           :aria-selected="activeTab === 'leaderboard'"
@@ -35,7 +35,7 @@
           Gift Leaderboard
         </button>
         <button
-          class="tab"
+          class="rp-tab"
           role="tab"
           :class="{ active: activeTab === 'archetypes' }"
           :aria-selected="activeTab === 'archetypes'"
@@ -59,33 +59,33 @@
       </div>
 
       <template v-else>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-value">{{ leaderboardStats.giftsWithData }}<span class="stat-total">/{{ leaderboardStats.totalGifts }}</span></span>
-            <span class="stat-label">Gifts with data</span>
+        <div class="rp-stats">
+          <div class="rp-stat">
+            <span class="rp-stat-value">{{ leaderboardStats.giftsWithData }}<span class="rp-stat-total">/{{ leaderboardStats.totalGifts }}</span></span>
+            <span class="rp-stat-label">Gifts with data</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-value">{{ leaderboardStats.uniqueParticipants }}</span>
-            <span class="stat-label">Participants ranked</span>
+          <div class="rp-stat">
+            <span class="rp-stat-value">{{ leaderboardStats.uniqueParticipants }}</span>
+            <span class="rp-stat-label">Participants ranked</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-value">{{ leaderboardStats.totalEntries }}</span>
-            <span class="stat-label">Leaderboard entries</span>
+          <div class="rp-stat">
+            <span class="rp-stat-value">{{ leaderboardStats.totalEntries }}</span>
+            <span class="rp-stat-label">Leaderboard entries</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-value stat-value--text">{{ leaderboardStats.leadingGift }}</span>
-            <span class="stat-label">Most represented gift</span>
+          <div class="rp-stat">
+            <span class="rp-stat-value rp-stat-value--text">{{ leaderboardStats.leadingGift }}</span>
+            <span class="rp-stat-label">Most represented gift</span>
           </div>
         </div>
 
-        <div class="card info-note">
+        <div class="card rp-info">
           <strong>How to read this:</strong>
           Share is the percentage of a participant's <em>own</em> total score that this gift represents.
           It highlights relative gifting strength, not absolute performance, so it is not comparable across participants.
         </div>
 
-        <div class="card controls">
-          <div class="control">
+        <div class="card rp-controls">
+          <div class="rp-control">
             <label for="admin-search">Search</label>
             <input
               id="admin-search"
@@ -95,7 +95,7 @@
             />
           </div>
 
-          <div class="control">
+          <div class="rp-control">
             <label for="admin-sort">Sort gifts by</label>
             <select id="admin-sort" v-model="sortBy">
               <option value="name">Gift name (A-Z)</option>
@@ -104,21 +104,21 @@
             </select>
           </div>
 
-          <div class="control control--toggle">
-            <label class="toggle">
+          <div class="rp-control rp-control--toggle">
+            <label class="rp-toggle">
               <input type="checkbox" v-model="hideEmpty" />
               <span>Hide gifts with no data</span>
             </label>
           </div>
 
-          <div class="control control--full">
+          <div class="rp-control rp-control--full">
             <label>Jump to gift</label>
-            <div class="pills">
-              <button class="pill" :class="{ active: activeGift === 'all' }" @click="activeGift = 'all'">All</button>
+            <div class="rp-pills">
+              <button class="rp-pill" :class="{ active: activeGift === 'all' }" @click="activeGift = 'all'">All</button>
               <button
                 v-for="name in giftNames"
                 :key="name"
-                class="pill"
+                class="rp-pill"
                 :class="{ active: activeGift === name }"
                 @click="activeGift = name"
               >
@@ -128,57 +128,55 @@
           </div>
         </div>
 
-        <div v-if="!visibleGifts.length" class="card no-results">
+        <div v-if="!visibleGifts.length" class="card rp-no-results">
           <p>No gifts match your filters.</p>
           <button class="btn btn-secondary" style="margin-top: 1rem;" @click="resetFilters">Clear filters</button>
         </div>
 
-        <div v-else class="gift-grid">
+        <div v-else class="rp-grid">
           <div
             v-for="gift in visibleGifts"
             :key="gift.gift_name"
-            class="card gift-card"
+            class="card rp-card"
             :id="'gift-' + slugify(gift.gift_name)"
           >
-            <div class="gift-card-header">
-              <h3 class="gift-title">{{ gift.gift_name }}</h3>
-              <span class="count-badge">
+            <div class="rp-card-head">
+              <h3 class="rp-card-title">{{ gift.gift_name }}</h3>
+              <span class="rp-card-count">
                 {{ gift.top_performers.length }}
                 {{ gift.top_performers.length === 1 ? 'entry' : 'entries' }}
               </span>
             </div>
 
-            <div v-if="gift.top_performers.length === 0" class="no-data">
+            <div v-if="gift.top_performers.length === 0" class="rp-empty">
               <p>No completed surveys for this gift yet.</p>
             </div>
 
-            <ol v-else class="performer-list">
+            <ol v-else class="rp-list">
               <li
                 v-for="(performer, index) in gift.top_performers"
                 :key="performer.response_id + '-' + index"
-                class="performer-row"
-                :class="'rank-' + (index + 1)"
+                class="rp-item"
+                :class="'rp-rank-' + (index + 1)"
               >
-                <span class="rank-badge">{{ index + 1 }}</span>
-                <div class="performer-main">
-                  <div class="performer-top">
-                    <span class="performer-name">{{ performer.name }}</span>
-                    <span class="performer-share">{{ performer.percentage }}%</span>
-                  </div>
+                <span class="rp-rank">{{ index + 1 }}</span>
+                <div class="rp-body">
+                  <span class="rp-name">{{ performer.name }}</span>
                   <div
-                    class="share-bar"
+                    class="rp-track"
                     role="progressbar"
                     :aria-valuenow="performer.percentage"
                     aria-valuemin="0"
                     aria-valuemax="100"
                     :aria-label="performer.name + ' share for ' + gift.gift_name"
                   >
-                    <div class="share-fill" :style="{ width: performer.percentage + '%' }"></div>
+                    <div class="rp-fill" :style="{ width: performer.percentage + '%' }"></div>
                   </div>
                 </div>
-                <span class="performer-score" :title="'Raw score: ' + performer.score">
-                  {{ performer.score }}
-                </span>
+                <div class="rp-metric">
+                  <span class="rp-pct">{{ performer.percentage }}%</span>
+                  <span class="rp-score">{{ performer.score }} pts</span>
+                </div>
               </li>
             </ol>
           </div>
@@ -199,33 +197,33 @@
       </div>
 
       <template v-else>
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-value">{{ archetypeStats.totalPlaced }}</span>
-            <span class="stat-label">People placed</span>
+        <div class="rp-stats">
+          <div class="rp-stat">
+            <span class="rp-stat-value">{{ archetypeStats.totalPlaced }}</span>
+            <span class="rp-stat-label">People placed</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-value">{{ archetypeStats.active }}<span class="stat-total">/{{ archetypeStats.total }}</span></span>
-            <span class="stat-label">Archetypes filled</span>
+          <div class="rp-stat">
+            <span class="rp-stat-value">{{ archetypeStats.active }}<span class="rp-stat-total">/{{ archetypeStats.total }}</span></span>
+            <span class="rp-stat-label">Archetypes filled</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-value stat-value--text">{{ archetypeStats.largest.name }}</span>
-            <span class="stat-label">Largest group ({{ archetypeStats.largest.member_count }})</span>
+          <div class="rp-stat">
+            <span class="rp-stat-value rp-stat-value--text">{{ archetypeStats.largest.name }}</span>
+            <span class="rp-stat-label">Largest group ({{ archetypeStats.largest.member_count }})</span>
           </div>
-          <div class="stat-card">
-            <span class="stat-value stat-value--text">{{ archetypeStats.leadingFamily }}</span>
-            <span class="stat-label">Strongest family</span>
+          <div class="rp-stat">
+            <span class="rp-stat-value rp-stat-value--text">{{ archetypeStats.leadingFamily }}</span>
+            <span class="rp-stat-label">Strongest family</span>
           </div>
         </div>
 
-        <div class="card info-note">
+        <div class="card rp-info">
           <strong>How to read this:</strong>
           Every completed survey is placed in the archetype whose signature gifts best match their top gifts.
           Members are listed strongest match first, and each person's top three gifts are shown by name.
         </div>
 
-        <div class="card controls">
-          <div class="control">
+        <div class="card rp-controls">
+          <div class="rp-control">
             <label for="arch-search">Search</label>
             <input
               id="arch-search"
@@ -235,7 +233,7 @@
             />
           </div>
 
-          <div class="control">
+          <div class="rp-control">
             <label for="arch-family">Family</label>
             <select id="arch-family" v-model="familyFilter">
               <option value="all">All families</option>
@@ -243,84 +241,85 @@
             </select>
           </div>
 
-          <div class="control control--toggle">
-            <label class="toggle">
+          <div class="rp-control rp-control--toggle">
+            <label class="rp-toggle">
               <input type="checkbox" v-model="hideEmptyArchetypes" />
               <span>Hide archetypes with no members</span>
             </label>
           </div>
         </div>
 
-        <div v-if="!filteredArchetypes.length" class="card no-results">
+        <div v-if="!filteredArchetypes.length" class="card rp-no-results">
           <p>No archetypes match your filters.</p>
           <button class="btn btn-secondary" style="margin-top: 1rem;" @click="resetArchetypeFilters">Clear filters</button>
         </div>
 
         <template v-else>
           <template v-for="family in visibleFamilies" :key="family">
-            <div class="family-header">
+            <div class="rp-family">
               <h3>{{ family }}</h3>
               <p>{{ familyMeta[family] }}</p>
             </div>
 
-            <div class="gift-grid">
+            <div class="rp-grid">
               <div
                 v-for="archetype in archetypesInFamily(family)"
                 :key="archetype.name"
-                class="card gift-card"
+                class="card rp-card"
               >
-                <div class="archetype-head">
+                <div class="rp-card-head rp-card-head--top">
                   <div>
-                    <span class="archetype-badge" :class="'family-' + archetype.family.toLowerCase()">
+                    <span class="rp-badge" :class="'rp-badge--' + archetype.family.toLowerCase()">
                       {{ archetype.family }}
                     </span>
-                    <h3 class="gift-title">{{ archetype.name }}</h3>
-                    <p class="archetype-tagline">{{ archetype.tagline }}</p>
+                    <h3 class="rp-card-title">{{ archetype.name }}</h3>
+                    <p class="rp-tagline">{{ archetype.tagline }}</p>
                   </div>
-                  <div class="member-count">
-                    <span class="member-count-num">{{ archetype.member_count }}</span>
-                    <span class="member-count-label">people</span>
+                  <div class="rp-member-count">
+                    <span class="rp-member-num">{{ archetype.member_count }}</span>
+                    <span class="rp-member-label">people</span>
                   </div>
                 </div>
 
-                <div class="signature-chips">
-                  <span v-for="gift in archetype.signature" :key="gift" class="signature-chip">
+                <div class="rp-signature">
+                  <span v-for="gift in archetype.signature" :key="gift" class="rp-signature-chip">
                     {{ gift }}
                   </span>
                 </div>
 
-                <div v-if="archetype.members.length === 0" class="no-data">
+                <div v-if="archetype.members.length === 0" class="rp-empty">
                   <p>No completed surveys matched this archetype yet.</p>
                 </div>
 
-                <ol v-else class="performer-list">
+                <ol v-else class="rp-list">
                   <li
                     v-for="(member, index) in archetype.members"
                     :key="member.response_id"
-                    class="performer-row member-row"
-                    :class="'rank-' + (index + 1)"
+                    class="rp-item"
+                    :class="'rp-rank-' + (index + 1)"
                   >
-                    <span class="rank-badge">{{ index + 1 }}</span>
-                    <div class="performer-main">
-                      <div class="performer-top">
-                        <span class="performer-name">{{ member.name }}</span>
-                        <span class="performer-share">{{ member.match_percentage }}%</span>
-                      </div>
+                    <span class="rp-rank">{{ index + 1 }}</span>
+                    <div class="rp-body">
+                      <span class="rp-name">{{ member.name }}</span>
                       <div
-                        class="share-bar"
+                        class="rp-track"
                         role="progressbar"
                         :aria-valuenow="member.match_percentage"
                         aria-valuemin="0"
                         aria-valuemax="100"
                         :aria-label="member.name + ' match for ' + archetype.name"
                       >
-                        <div class="share-fill" :style="{ width: member.match_percentage + '%' }"></div>
+                        <div class="rp-fill" :style="{ width: member.match_percentage + '%' }"></div>
                       </div>
-                      <div class="member-gifts">
-                        <span v-for="gift in member.top_gifts" :key="gift" class="gift-tag">
+                      <div class="rp-chips">
+                        <span v-for="gift in member.top_gifts" :key="gift" class="rp-chip">
                           {{ gift }}
                         </span>
                       </div>
+                    </div>
+                    <div class="rp-metric">
+                      <span class="rp-pct">{{ member.match_percentage }}%</span>
+                      <span class="rp-score">match</span>
                     </div>
                   </li>
                 </ol>
@@ -694,17 +693,22 @@ export default {
 </script>
 
 <style scoped>
-.admin-container {
+/* ============================================================
+   Admin reports — scoped, namespaced with `rp-` so nothing
+   collides with global styles (e.g. the global .rank-badge).
+   ============================================================ */
+
+.rp-container {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Header */
-.admin-header {
+/* ---------------- Header ---------------- */
+.rp-header {
   padding: 1.5rem 2rem;
 }
 
-.header-main {
+.rp-header-main {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -712,37 +716,37 @@ export default {
   flex-wrap: wrap;
 }
 
-.admin-header h2 {
+.rp-header h2 {
   margin-bottom: 0.35rem;
 }
 
-.subtitle {
+.rp-subtitle {
   color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
-.header-actions {
+.rp-header-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
 }
 
-.updated {
+.rp-updated {
   font-size: 0.85rem;
   color: var(--text-secondary);
   white-space: nowrap;
 }
 
-/* Tabs */
-.tabs {
+/* ---------------- Tabs ---------------- */
+.rp-tabs {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.25rem;
   margin-top: 1.5rem;
   border-bottom: 2px solid var(--border-color);
 }
 
-.tab {
+.rp-tab {
   border: none;
   background: transparent;
   padding: 0.75rem 1.25rem;
@@ -752,64 +756,64 @@ export default {
   cursor: pointer;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease;
 }
 
-.tab:hover {
+.rp-tab:hover {
   color: var(--secondary-color);
 }
 
-.tab.active {
+.rp-tab.active {
   color: var(--secondary-color);
   border-bottom-color: var(--secondary-color);
 }
 
-/* Stats */
-.stats-grid {
+/* ---------------- Stats ---------------- */
+.rp-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 1rem;
   margin-bottom: 1.5rem;
 }
 
-.stat-card {
+.rp-stat {
   background: var(--card-background);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 1.25rem 1.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
   border-left: 4px solid var(--secondary-color);
 }
 
-.stat-value {
+.rp-stat-value {
   font-size: 2rem;
   font-weight: 700;
   color: var(--secondary-color);
   line-height: 1.1;
 }
 
-.stat-value--text {
+.rp-stat-value--text {
   font-size: 1.25rem;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
-.stat-total {
+.rp-stat-total {
   font-size: 1.1rem;
   color: var(--text-secondary);
   font-weight: 600;
 }
 
-.stat-label {
-  font-size: 0.85rem;
+.rp-stat-label {
+  font-size: 0.8rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
-/* Info note */
-.info-note {
+/* ---------------- Info note ---------------- */
+.rp-info {
   padding: 1rem 1.5rem;
   font-size: 0.9rem;
   color: var(--text-secondary);
@@ -817,12 +821,12 @@ export default {
   border-left: 4px solid var(--secondary-color);
 }
 
-.info-note strong {
+.rp-info strong {
   color: var(--text-primary);
 }
 
-/* Controls */
-.controls {
+/* ---------------- Controls ---------------- */
+.rp-controls {
   display: grid;
   grid-template-columns: 1fr 220px auto;
   gap: 1.25rem;
@@ -830,25 +834,25 @@ export default {
   padding: 1.5rem 2rem;
 }
 
-.control {
+.rp-control {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
 
-.control--full {
+.rp-control--full {
   grid-column: 1 / -1;
 }
 
-.control label {
-  font-size: 0.8rem;
-  font-weight: 600;
+.rp-control label {
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
 }
 
-.control select {
+.rp-control select {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
@@ -859,18 +863,18 @@ export default {
   cursor: pointer;
 }
 
-.control select:focus {
+.rp-control select:focus {
   outline: none;
   border-color: var(--secondary-color);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.control--toggle {
+.rp-control--toggle {
   align-self: center;
   padding-bottom: 0.35rem;
 }
 
-.toggle {
+.rp-toggle {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -883,20 +887,20 @@ export default {
   white-space: nowrap;
 }
 
-.toggle input {
+.rp-toggle input {
   width: 18px;
   height: 18px;
   accent-color: var(--secondary-color);
   cursor: pointer;
 }
 
-.pills {
+.rp-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
 }
 
-.pill {
+.rp-pill {
   padding: 0.4rem 0.9rem;
   border-radius: 999px;
   border: 1px solid var(--border-color);
@@ -908,56 +912,62 @@ export default {
   transition: all 0.2s ease;
 }
 
-.pill:hover {
+.rp-pill:hover {
   border-color: var(--secondary-color);
   color: var(--secondary-color);
 }
 
-.pill.active {
+.rp-pill.active {
   background: var(--secondary-color);
   border-color: var(--secondary-color);
   color: white;
 }
 
-/* Gift grid */
-.gift-grid {
+/* ---------------- Card grid ---------------- */
+.rp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
   gap: 1.5rem;
   align-items: start;
 }
 
-.gift-card {
+.rp-card {
   margin-bottom: 0;
   padding: 1.5rem;
 }
 
-.gift-card-header {
+.rp-card-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.25rem;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.85rem;
   border-bottom: 2px solid var(--border-color);
 }
 
-.gift-title {
-  color: var(--secondary-color);
-  font-size: 1.25rem;
+.rp-card-head--top {
+  align-items: flex-start;
 }
 
-.count-badge {
+.rp-card-title {
+  color: var(--secondary-color);
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.rp-card-count {
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--secondary-color);
   background: rgba(102, 126, 234, 0.1);
-  padding: 0.25rem 0.6rem;
+  padding: 0.25rem 0.65rem;
   border-radius: 999px;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.no-data {
+.rp-empty {
   text-align: center;
   padding: 1.5rem;
   color: var(--text-secondary);
@@ -965,128 +975,198 @@ export default {
   font-size: 0.9rem;
 }
 
-/* Performer / member list */
-.performer-list {
+/* ---------------- Ranked list ---------------- */
+.rp-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
-.performer-row {
-  display: grid;
-  grid-template-columns: 32px 1fr auto;
-  gap: 0.75rem;
+.rp-item {
+  display: flex;
   align-items: center;
-  padding: 0.5rem 0.6rem;
-  border-radius: 6px;
+  gap: 0.9rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 8px;
+  background: var(--background);
   border-left: 3px solid transparent;
-  transition: background 0.2s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.performer-row.member-row {
-  grid-template-columns: 32px 1fr;
+.rp-item:hover {
+  transform: translateX(2px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
-.performer-row:hover {
-  background: rgba(102, 126, 234, 0.05);
-}
-
-.performer-row.rank-1 {
+.rp-item.rp-rank-1 {
   border-left-color: #f6ad55;
 }
 
-.performer-row.rank-2 {
+.rp-item.rp-rank-2 {
   border-left-color: #a0aec0;
 }
 
-.performer-row.rank-3 {
+.rp-item.rp-rank-3 {
   border-left-color: #ed8936;
 }
 
-.rank-badge {
+.rp-rank {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: var(--secondary-color);
-  color: white;
   border-radius: 50%;
+  background: var(--secondary-color);
+  color: #fff;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
-.performer-row.rank-1 .rank-badge {
+.rp-item.rp-rank-1 .rp-rank {
   background: #f6ad55;
 }
 
-.performer-row.rank-2 .rank-badge {
+.rp-item.rp-rank-2 .rp-rank {
   background: #a0aec0;
 }
 
-.performer-row.rank-3 .rank-badge {
+.rp-item.rp-rank-3 .rp-rank {
   background: #ed8936;
 }
 
-.performer-main {
+/* The name gets all remaining width; metric is fixed. */
+.rp-body {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
-.performer-top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.15rem 0.75rem;
-  margin-bottom: 0.3rem;
-}
-
-.performer-name {
+.rp-name {
+  display: block;
   font-weight: 600;
   color: var(--text-primary);
-  flex: 1 1 60%;
-  min-width: 0;
+  line-height: 1.4;
   overflow-wrap: break-word;
 }
 
-.performer-share {
-  font-weight: 700;
-  color: var(--secondary-color);
-  font-size: 0.9rem;
-  flex: 0 0 auto;
-  margin-left: auto;
-}
-
-.share-bar {
+.rp-track {
+  margin-top: 0.45rem;
   height: 6px;
   background: var(--border-color);
   border-radius: 3px;
   overflow: hidden;
 }
 
-.share-fill {
+.rp-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--secondary-color), var(--success-color));
   transition: width 0.3s ease;
 }
 
-.performer-score {
-  font-weight: 700;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  min-width: 24px;
+.rp-metric {
+  flex: 0 0 auto;
+  min-width: 62px;
   text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
 }
 
-.member-gifts {
+.rp-pct {
+  font-weight: 700;
+  color: var(--secondary-color);
+  font-size: 0.95rem;
+}
+
+.rp-score {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ---------------- Archetype specifics ---------------- */
+.rp-badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.rp-badge--reach {
+  background: rgba(245, 101, 101, 0.15);
+  color: #c53030;
+}
+
+.rp-badge--keep {
+  background: rgba(72, 187, 120, 0.15);
+  color: #276749;
+}
+
+.rp-badge--build {
+  background: rgba(102, 126, 234, 0.15);
+  color: #4c51bf;
+}
+
+.rp-tagline {
+  font-style: italic;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 0.3rem 0 0;
+}
+
+.rp-member-count {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.rp-member-num {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--secondary-color);
+  line-height: 1.1;
+}
+
+.rp-member-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+}
+
+.rp-signature {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.rp-signature-chip {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.2rem 0.6rem;
+  background: rgba(102, 126, 234, 0.1);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 999px;
+}
+
+.rp-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.5rem;
 }
 
-.gift-tag {
-  font-size: 0.75rem;
+.rp-chip {
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-primary);
   padding: 0.15rem 0.55rem;
@@ -1096,168 +1176,90 @@ export default {
   white-space: nowrap;
 }
 
-/* Archetypes */
-.family-header {
+/* ---------------- Family headers ---------------- */
+.rp-family {
   margin: 2.5rem 0 1.25rem;
   text-align: center;
 }
 
-.family-header h3 {
+.rp-family h3 {
   font-size: 1.75rem;
   color: var(--secondary-color);
   margin-bottom: 0.25rem;
 }
 
-.family-header p {
+.rp-family p {
   color: var(--text-secondary);
   font-style: italic;
   margin: 0;
 }
 
-.archetype-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.archetype-badge {
-  display: inline-block;
-  padding: 0.2rem 0.75rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.5rem;
-}
-
-.archetype-badge.family-reach {
-  background: rgba(245, 101, 101, 0.15);
-  color: #c53030;
-}
-
-.archetype-badge.family-keep {
-  background: rgba(72, 187, 120, 0.15);
-  color: #276749;
-}
-
-.archetype-badge.family-build {
-  background: rgba(102, 126, 234, 0.15);
-  color: #4c51bf;
-}
-
-.archetype-tagline {
-  font-style: italic;
-  color: var(--text-secondary);
-  margin: 0.25rem 0 0;
-  font-size: 0.9rem;
-}
-
-.member-count {
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.member-count-num {
-  display: block;
-  font-size: 1.6rem;
-  font-weight: 800;
-  color: var(--secondary-color);
-  line-height: 1.1;
-}
-
-.member-count-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-secondary);
-}
-
-.signature-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-bottom: 1.25rem;
-}
-
-.signature-chip {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  padding: 0.2rem 0.6rem;
-  background: rgba(102, 126, 234, 0.1);
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  border-radius: 999px;
-}
-
-/* Empty state */
-.no-results {
+/* ---------------- Empty state ---------------- */
+.rp-no-results {
   text-align: center;
   color: var(--text-secondary);
   padding: 2.5rem;
 }
 
-/* Responsive */
+/* ---------------- Responsive ---------------- */
+@media (max-width: 900px) {
+  .rp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 768px) {
-  .admin-header {
+  .rp-header {
     padding: 1.25rem;
   }
 
-  .controls {
+  .rp-controls {
     grid-template-columns: 1fr;
     padding: 1.25rem;
   }
 
-  .control--toggle {
+  .rp-control--toggle {
     align-self: flex-start;
   }
 
-  .gift-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .header-actions {
+  .rp-header-actions {
     width: 100%;
   }
 
-  .header-actions .btn {
+  .rp-header-actions .btn {
     flex: 1;
   }
 
-  .tabs {
+  .rp-tabs {
     width: 100%;
   }
 
-  .tab {
+  .rp-tab {
     flex: 1;
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;
   }
 }
 
-/* Print */
+/* ---------------- Print ---------------- */
 @media print {
-  .header-actions,
-  .tabs,
-  .controls {
+  .rp-header-actions,
+  .rp-tabs,
+  .rp-controls {
     display: none;
   }
 
-  .admin-container {
+  .rp-container {
     max-width: none;
   }
 
-  .gift-grid {
+  .rp-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
 
   .card,
-  .stat-card {
+  .rp-stat {
     box-shadow: none;
     border: 1px solid var(--border-color);
     break-inside: avoid;
